@@ -1,7 +1,7 @@
 package com.sampleweatherapp.utilities
 
 enum class WeatherCondition {
-    CLOUDY,
-    RAINY,
-    SUNNY
+    Clouds,
+    Rain,
+    Sun
 }
