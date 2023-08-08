@@ -12,4 +12,7 @@
 /captures
 .externalNativeBuild
 .cxx
+secrets.properties
 local.properties
+sampleWeatherApp.keystore
+sampleWeatherAppDebug.keystore
