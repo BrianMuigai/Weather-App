@@ -1,5 +1,6 @@
 package com.sampleweatherapp.ui
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,24 +27,62 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.CurrentWeather
-import com.sampleweatherapp.models.Forecast
 import com.sampleweatherapp.models.ForecastItem
+import com.sampleweatherapp.network.response.Response
+import com.sampleweatherapp.ui.components.ErrorScreen
+import com.sampleweatherapp.ui.components.LoadingAnimation
 import com.sampleweatherapp.ui.theme.cloudy
 import com.sampleweatherapp.ui.theme.rainy
 import com.sampleweatherapp.ui.theme.sunny
+import com.sampleweatherapp.utilities.ErrorState
 import com.sampleweatherapp.utilities.WeatherCondition
+import com.sampleweatherapp.viewmodels.WeatherScreenViewModel
 
-//@Preview(showSystemUi = true)
+@Preview(showSystemUi = true)
 @Composable
-fun WeatherScreen(
-    currentWeather: CurrentWeather, forecast: Forecast
-) {
-    val scrollState = rememberScrollState()
+fun WeatherScreen(weatherViewModel: WeatherScreenViewModel = viewModel()) {
+    fun launch() {
+        weatherViewModel.getCurrentWeather(1.2921, 36.8219)
+    }
+    launch()
+
+    Surface {
+
+        when (val currentWeatherResponse = weatherViewModel.currentWeatherState.value) {
+            is Response.Loading -> {
+                LoadingAnimation()
+            }
+
+            is Response.Success -> {
+                if (currentWeatherResponse.data == null) {
+                    ErrorScreen(onClickRetry = { launch() })
+                } else {
+                    Screen(
+                        currentWeather = currentWeatherResponse.data,
+                        weatherViewModel = weatherViewModel
+                    )
+                }
+            }
+
+            is Response.Failure -> {
+                ErrorScreen(errorState = ErrorState.ERROR, onClickRetry = { launch() })
+            }
+        }
+    }
+
+}
+
+@Composable
+fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewModel) {
+    fun launch() {
+        weatherViewModel.getForecastWeather(1.2921, 36.8219)
+    }
+    launch()
 
     Column(modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints {
@@ -76,12 +114,40 @@ fun WeatherScreen(
                     ) {
                         Column {
                             Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                MinCurrentMax()
+                                MinCurrentMax(currentWeather = currentWeather)
                             }
                             Divider(thickness = 1.dp, color = Color.White)
-                            Box(modifier = Modifier.padding(all = 16.dp)) {
-                                RestOfWeek(days = forecast.forecasts)
+                            when (val forecastResponse =
+                                weatherViewModel.forecastWeatherState.value) {
+                                is Response.Loading -> {
+                                    Box(Modifier.weight(1f).fillMaxSize()) {
+                                        LoadingAnimation()
+                                    }
+                                }
+
+                                is Response.Success -> {
+                                    if (forecastResponse.data == null) {
+                                        Log.e("WeatherScreen", "returned a null weather forecast")
+                                        Box(Modifier.weight(1f)) {
+                                            ErrorScreen(onClickRetry = { launch() })
+                                        }
+                                    } else {
+                                        Box(modifier = Modifier
+                                            .padding(all = 16.dp)
+                                            .fillMaxSize()) {
+                                            RestOfWeek(days = forecastResponse.data.forecasts)
+                                        }
+                                    }
+                                }
+                                is Response.Failure -> {
+                                    Box(Modifier.weight(1f)) {
+                                        ErrorScreen(
+                                            errorState = ErrorState.ERROR,
+                                            onClickRetry = { launch() })
+                                    }
+                                }
                             }
+
                         }
                     }
                 }
@@ -123,7 +189,7 @@ fun Header(currentWeather: CurrentWeather, containerHeight: Dp, image: Int) {
 }
 
 @Composable
-fun MinCurrentMax() {
+fun MinCurrentMax(currentWeather: CurrentWeather) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -134,7 +200,7 @@ fun MinCurrentMax() {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            Text(text = "19\u00B0")
+            Text(text = currentWeather.main.tempMin.toString() + "\u00B0")
             Text(text = stringResource(R.string.min))
         }
         Column(
@@ -142,7 +208,7 @@ fun MinCurrentMax() {
                 .fillMaxWidth()
                 .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "19\u00B0")
+            Text(text = currentWeather.main.temp.toString() + "\u00B0")
             Text(text = stringResource(R.string.current))
         }
         Column(
@@ -150,7 +216,7 @@ fun MinCurrentMax() {
                 .fillMaxWidth()
                 .weight(1f), horizontalAlignment = Alignment.End
         ) {
-            Text(text = "19\u00B0")
+            Text(text = currentWeather.main.tempMax.toString() + "\u00B0")
             Text(text = stringResource(R.string.max))
         }
     }

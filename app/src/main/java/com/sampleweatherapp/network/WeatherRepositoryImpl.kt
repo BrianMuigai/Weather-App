@@ -14,8 +14,8 @@ class WeatherRepositoryImpl constructor(private val weatherServices: WeatherServ
     override fun getCurrentWeather(lat: Double, lon: Double): Flow<Response<CurrentWeather>> = flow{
         try{
             emit(Response.Loading)
-            val responseApi = weatherServices.getCurrentWeather(lat=lat, lon = lon)
-            emit(Response.Success(responseApi))
+            val response = weatherServices.getCurrentWeather(lat=lat, lon = lon)
+            emit(Response.Success(response))
         }catch (e: Exception) {
             emit(Response.Failure(e))
         }
@@ -24,8 +24,8 @@ class WeatherRepositoryImpl constructor(private val weatherServices: WeatherServ
     override fun getForecast(lat: Double, lon: Double): Flow<Response<Forecast>>  = flow{
         try{
             emit(Response.Loading)
-            val responseApi = weatherServices.getForecastWeather(lat=lat, lon = lon)
-            emit(Response.Success(responseApi))
+            val response = weatherServices.getForecastWeather(lat=lat, lon = lon)
+            emit(Response.Success(response))
         }catch (e: Exception) {
             emit(Response.Failure(e))
         }
