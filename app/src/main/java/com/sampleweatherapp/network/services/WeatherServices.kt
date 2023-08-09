@@ -1,4 +1,4 @@
-package com.sampleweatherapp.network
+package com.sampleweatherapp.network.services
 
 import com.sampleweatherapp.BuildConfig
 import com.sampleweatherapp.models.CurrentWeather
@@ -8,22 +8,21 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface WeatherServices {
     @GET("weather")
     suspend fun getCurrentWeather(
         @Query("appid") key: String = BuildConfig.OPEN_WEATHER_MAP_API_KEY,
-        @Query("lat") page: Int,
-        @Query("lon") pageSize: Int,
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
     ) : CurrentWeather
 
     @GET("forecast")
-    suspend fun getGamesDetail(
+    suspend fun getForecastWeather(
         @Query("appid") key: String = BuildConfig.OPEN_WEATHER_MAP_API_KEY,
-        @Query("lat") page: Int,
-        @Query("lon") pageSize: Int,
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
     ) : Forecast
 
     companion object {
