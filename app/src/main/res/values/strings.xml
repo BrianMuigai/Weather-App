@@ -3,4 +3,7 @@
     <string name="min">Min</string>
     <string name="current">Current</string>
     <string name="max">Max</string>
+    <string name="try_again">Try Again</string>
+    <string name="opsy">Ops! Something went wrong…</string>
+    <string name="no_internet">No Internet Connection</string>
 </resources>

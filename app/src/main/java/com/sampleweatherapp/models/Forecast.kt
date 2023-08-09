@@ -8,5 +8,5 @@ data class Forecast(
     @SerializedName("cod") @Expose val cod: String,
     @SerializedName("message") @Expose val message: Int,
     @SerializedName("cnt") @Expose val cnt: Int,
-    @SerializedName("list") @Expose val forecasts: List<ForecastItem>
+    @SerializedName("list") @Expose val forecasts: List<ForecastItem> = listOf()
 )

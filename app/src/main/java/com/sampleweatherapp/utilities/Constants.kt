@@ -5,3 +5,8 @@ enum class WeatherCondition {
     Rain,
     Sun
 }
+
+enum class ErrorState {
+    SOMETHING_WENT_WRONG,
+    ERROR
+}
