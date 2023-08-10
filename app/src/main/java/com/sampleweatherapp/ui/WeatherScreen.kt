@@ -120,7 +120,12 @@ fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewMo
                             when (val forecastResponse =
                                 weatherViewModel.forecastWeatherState.value) {
                                 is Response.Loading -> {
-                                    Box(Modifier.weight(1f).fillMaxSize()) {
+                                    Box(
+                                        Modifier
+                                            .weight(1f)
+                                            .fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         LoadingAnimation()
                                     }
                                 }
@@ -132,13 +137,16 @@ fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewMo
                                             ErrorScreen(onClickRetry = { launch() })
                                         }
                                     } else {
-                                        Box(modifier = Modifier
-                                            .padding(all = 16.dp)
-                                            .fillMaxSize()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(all = 16.dp)
+                                                .fillMaxSize()
+                                        ) {
                                             RestOfWeek(days = forecastResponse.data.forecasts)
                                         }
                                     }
                                 }
+
                                 is Response.Failure -> {
                                     Box(Modifier.weight(1f)) {
                                         ErrorScreen(
