@@ -61,15 +61,15 @@ fun LoadingAnimation(
             .background(color = Color.Transparent)
     ) {
         // animating circles
-        circles.forEachIndexed { index, animatable ->
+        circles.forEachIndexed { _, animate_able ->
             Box(
                 modifier = Modifier
-                    .scale(scale = animatable.value)
+                    .scale(scale = animate_able.value)
                     .size(size = 200.dp)
                     .clip(shape = CircleShape)
                     .background(
                         color = circleColor
-                            .copy(alpha = (1 - animatable.value))
+                            .copy(alpha = (1 - animate_able.value))
                     )
             ) {
             }

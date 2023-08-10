@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,12 +30,14 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.CurrentWeather
+import com.sampleweatherapp.models.Forecast
 import com.sampleweatherapp.models.ForecastItem
 import com.sampleweatherapp.network.response.Response
 import com.sampleweatherapp.ui.components.ErrorScreen
@@ -40,7 +46,12 @@ import com.sampleweatherapp.ui.theme.cloudy
 import com.sampleweatherapp.ui.theme.rainy
 import com.sampleweatherapp.ui.theme.sunny
 import com.sampleweatherapp.utilities.ErrorState
+import com.sampleweatherapp.utilities.ForecastHolder
 import com.sampleweatherapp.utilities.WeatherCondition
+import com.sampleweatherapp.utilities.cleanForecast
+import com.sampleweatherapp.utilities.getDayOfWeek
+import com.sampleweatherapp.utilities.getIcon
+import com.sampleweatherapp.utilities.tempToInt
 import com.sampleweatherapp.viewmodels.WeatherScreenViewModel
 
 @Preview(showSystemUi = true)
@@ -117,10 +128,16 @@ fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewMo
                                 MinCurrentMax(currentWeather = currentWeather)
                             }
                             Divider(thickness = 1.dp, color = Color.White)
+                            Spacer(modifier = Modifier.padding(vertical = 20.dp))
                             when (val forecastResponse =
                                 weatherViewModel.forecastWeatherState.value) {
                                 is Response.Loading -> {
-                                    Box(Modifier.weight(1f).fillMaxSize()) {
+                                    Box(
+                                        Modifier
+                                            .weight(1f)
+                                            .fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         LoadingAnimation()
                                     }
                                 }
@@ -132,13 +149,16 @@ fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewMo
                                             ErrorScreen(onClickRetry = { launch() })
                                         }
                                     } else {
-                                        Box(modifier = Modifier
-                                            .padding(all = 16.dp)
-                                            .fillMaxSize()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(horizontal = 16.dp)
+                                                .fillMaxSize()
+                                        ) {
                                             RestOfWeek(days = forecastResponse.data.forecasts)
                                         }
                                     }
                                 }
+
                                 is Response.Failure -> {
                                     Box(Modifier.weight(1f)) {
                                         ErrorScreen(
@@ -200,7 +220,7 @@ fun MinCurrentMax(currentWeather: CurrentWeather) {
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            Text(text = currentWeather.main.tempMin.toString() + "\u00B0")
+            Text(text = tempToInt(currentWeather.main.tempMin).toString() + "\u00B0")
             Text(text = stringResource(R.string.min))
         }
         Column(
@@ -208,7 +228,7 @@ fun MinCurrentMax(currentWeather: CurrentWeather) {
                 .fillMaxWidth()
                 .weight(1f), horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = currentWeather.main.temp.toString() + "\u00B0")
+            Text(text = tempToInt(currentWeather.main.temp).toString() + "\u00B0")
             Text(text = stringResource(R.string.current))
         }
         Column(
@@ -216,7 +236,7 @@ fun MinCurrentMax(currentWeather: CurrentWeather) {
                 .fillMaxWidth()
                 .weight(1f), horizontalAlignment = Alignment.End
         ) {
-            Text(text = currentWeather.main.tempMax.toString() + "\u00B0")
+            Text(text = tempToInt(currentWeather.main.tempMax).toString() + "\u00B0")
             Text(text = stringResource(R.string.max))
         }
     }
@@ -224,15 +244,34 @@ fun MinCurrentMax(currentWeather: CurrentWeather) {
 
 @Composable
 fun RestOfWeek(days: List<ForecastItem>) {
+    val cleanedData: List<ForecastHolder> = cleanForecast(days)
     LazyColumn(Modifier.fillMaxSize()) {
-        items(days) { item: ForecastItem -> ListItem(item) }
+        items(cleanedData) { item: ForecastHolder -> ListItem(item) }
     }
 }
 
 @Composable
-fun ListItem(forecast: ForecastItem, modifier: Modifier = Modifier) {
-    Row(modifier.fillMaxWidth()) {
-        Text(text = forecast.main.temp.toString())
+fun ListItem(forecast: ForecastHolder, modifier: Modifier = Modifier) {
+    Box(modifier = Modifier.padding(vertical = 10.dp)) {
+        Row(modifier.fillMaxWidth()) {
+            Text(
+                text = forecast.dayOfWeek, modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+            ReusableImage(
+                image = forecast.icon, contentScale = ContentScale.Fit,
+                contentDesc = "Degree Icon",
+                modifier = Modifier
+                    .width(width = 30.dp)
+                    .height(height = 30.dp)
+            )
+            Text(
+                text = forecast.avgTemp.toString() + "°", modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f), textAlign = TextAlign.End
+            )
+        }
     }
 }
 
