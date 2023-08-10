@@ -3,6 +3,7 @@ package com.sampleweatherapp
 import com.google.gson.Gson
 import com.sampleweatherapp.models.CurrentWeather
 import com.sampleweatherapp.models.Forecast
+import com.sampleweatherapp.utilities.getDayOfWeek
 import org.junit.Assert
 import org.junit.Test
 
@@ -16,6 +17,12 @@ import org.junit.Assert.*
 class ExampleUnitTest {
 
     private val gson = Gson()
+
+    @Test
+    fun getDayOfWeek_correct() {
+        val timestamp : Long = 1691664966
+        assertEquals("Thursday", getDayOfWeek(timestamp))
+    }
 
     @Test
     fun currentWeather_fromJson_correct() {
