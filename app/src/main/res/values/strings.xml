@@ -11,4 +11,6 @@
     <string name="permission_denied">Permission Denied</string>
     <string name="unknown_current_location">Unknown Current Location</string>
     <string name="turn_on_location">Please turn on location</string>
+    <string name="home">Home</string>
+    <string name="favourites">Favourites</string>
 </resources>

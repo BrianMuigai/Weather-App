@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import com.sampleweatherapp.ui.WeatherScreen
+import com.sampleweatherapp.ui.MainScreen
 import com.sampleweatherapp.ui.theme.SampleWeatherAppTheme
 import com.sampleweatherapp.utilities.LocationManager
 
@@ -106,7 +106,7 @@ fun WeatherApp(
     locationManager: LocationManager,
     requestLocationPermission: (onPermissionGranted: () -> Unit) -> Unit
 ) {
-    WeatherScreen(
+    MainScreen(
         locationManager = locationManager,
         onRequestPermission = requestLocationPermission
     )
