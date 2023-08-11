@@ -1,6 +1,9 @@
 package com.sampleweatherapp.ui
 
+import android.content.Intent
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,7 +11,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,16 +30,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.CurrentWeather
-import com.sampleweatherapp.models.Forecast
 import com.sampleweatherapp.models.ForecastItem
 import com.sampleweatherapp.network.response.Response
 import com.sampleweatherapp.ui.components.ErrorScreen
@@ -47,19 +48,49 @@ import com.sampleweatherapp.ui.theme.rainy
 import com.sampleweatherapp.ui.theme.sunny
 import com.sampleweatherapp.utilities.ErrorState
 import com.sampleweatherapp.utilities.ForecastHolder
+import com.sampleweatherapp.utilities.LocationManager
 import com.sampleweatherapp.utilities.WeatherCondition
 import com.sampleweatherapp.utilities.cleanForecast
-import com.sampleweatherapp.utilities.getDayOfWeek
-import com.sampleweatherapp.utilities.getIcon
+import com.sampleweatherapp.utilities.hasLocationPermission
+import com.sampleweatherapp.utilities.isLocationEnabled
 import com.sampleweatherapp.utilities.tempToInt
 import com.sampleweatherapp.viewmodels.WeatherScreenViewModel
 
-@Preview(showSystemUi = true)
 @Composable
-fun WeatherScreen(weatherViewModel: WeatherScreenViewModel = viewModel()) {
+fun WeatherScreen(
+    locationManager: LocationManager,
+    weatherViewModel: WeatherScreenViewModel = viewModel(),
+    onRequestPermission: (onPermissionGranted: () -> Unit) -> Unit
+) {
+    val context = LocalContext.current
+
     fun launch() {
-        weatherViewModel.getCurrentWeather(1.2921, 36.8219)
+        if (hasLocationPermission(context)) {
+            if (isLocationEnabled(context)) {
+                locationManager.getLastLocation(onSuccess = { lat: Double, lon: Double ->
+                    weatherViewModel.getCurrentWeather(lat, lon)
+                })
+            } else {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.turn_on_location),
+                    Toast.LENGTH_LONG
+                ).show()
+                weatherViewModel.setFailCurrentWeatherResponse(
+                    message = context.getString(R.string.missing_permission)
+                )
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                context.startActivity(intent)
+            }
+        } else {
+            weatherViewModel.setFailCurrentWeatherResponse(
+                message = context.getString(R.string.missing_permission)
+            )
+            onRequestPermission { launch() }
+        }
     }
+
+
     launch()
 
     Surface {
@@ -81,7 +112,11 @@ fun WeatherScreen(weatherViewModel: WeatherScreenViewModel = viewModel()) {
             }
 
             is Response.Failure -> {
-                ErrorScreen(errorState = ErrorState.ERROR, onClickRetry = { launch() })
+                ErrorScreen(
+                    errorState = ErrorState.ERROR,
+                    onClickRetry = { launch() },
+                    title = currentWeatherResponse.e!!.message.toString()
+                )
             }
         }
     }
