@@ -33,6 +33,8 @@ import com.sampleweatherapp.utilities.ErrorState
 @Composable
 fun ErrorScreen(
     errorState: ErrorState = ErrorState.SOMETHING_WENT_WRONG,
+    title: String = stringResource(id = R.string.no_internet),
+    subtitle: String = stringResource(id = R.string.opsy),
     onClickRetry: () -> Unit
 ) {
     Box(
@@ -54,15 +56,17 @@ fun ErrorScreen(
             )
             if (errorState == ErrorState.ERROR) {
                 Text(
-                    text = stringResource(id = R.string.no_internet),
+                    text = title,
                     style = TextStyle(
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold
-                    )
+                    ),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
             Text(
-                text = stringResource(id = R.string.opsy),
+                text = subtitle,
                 style = TextStyle(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Thin,
