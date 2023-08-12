@@ -25,13 +25,14 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.sampleweatherapp.ui.components.bottomNav.BottomNavGraph
 import com.sampleweatherapp.ui.components.bottomNav.BottomNavItem
 import com.sampleweatherapp.utilities.LocationManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(locationManager: LocationManager, onRequestPermission: (() -> Unit) -> Unit) {
+fun MainScreen(locationManager: LocationManager, onRequestPermission: (() -> Unit) -> Unit, placesClient: PlacesClient) {
     val navController = rememberNavController()
 
     Scaffold(
@@ -41,7 +42,8 @@ fun MainScreen(locationManager: LocationManager, onRequestPermission: (() -> Uni
         BottomNavGraph(
             navController = navController,
             locationManager = locationManager,
-            onRequestPermission = onRequestPermission
+            onRequestPermission = onRequestPermission,
+            placesClient = placesClient
         )
     }
 }
@@ -56,19 +58,25 @@ fun BottomBar(navController: NavHostController) {
     val navStackBackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navStackBackEntry?.destination
 
-    Row(
+    Box(
         modifier = Modifier
-            .padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 5.dp)
+            .background(Color.Black.copy(alpha = 0.1f))
     ) {
-        screens.forEach { screen ->
-            AddItem(
-                screen = screen,
-                currentDestination = currentDestination,
-                navController = navController
-            )
+        Row(
+            modifier = Modifier
+                .padding(top = 8.dp, bottom = 8.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            screens.forEach { screen ->
+                AddItem(
+                    screen = screen,
+                    currentDestination = currentDestination,
+                    navController = navController
+                )
+            }
         }
     }
 
@@ -90,7 +98,7 @@ fun AddItem(
 
     Box(
         modifier = Modifier
-            .height(50.dp)
+            .height(40.dp)
             .clip(CircleShape)
             .background(background)
             .clickable(onClick = {

@@ -60,7 +60,8 @@ import com.sampleweatherapp.viewmodels.WeatherScreenViewModel
 fun WeatherScreen(
     locationManager: LocationManager,
     weatherViewModel: WeatherScreenViewModel = viewModel(),
-    onRequestPermission: (onPermissionGranted: () -> Unit) -> Unit
+    onRequestPermission: (onPermissionGranted: () -> Unit) -> Unit,
+    setBackground: (color: Color) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -107,6 +108,13 @@ fun WeatherScreen(
                     Screen(
                         currentWeather = currentWeatherResponse.data,
                         weatherViewModel = weatherViewModel
+                    )
+                    setBackground.invoke(
+                        when (currentWeatherResponse.data.weather[0].main) {
+                            WeatherCondition.Sun.name -> sunny
+                            WeatherCondition.Clouds.name -> cloudy
+                            else -> rainy
+                        }
                     )
                 }
             }

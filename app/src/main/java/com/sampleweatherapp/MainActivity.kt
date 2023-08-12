@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.sampleweatherapp.ui.MainScreen
 import com.sampleweatherapp.ui.theme.SampleWeatherAppTheme
 import com.sampleweatherapp.utilities.LocationManager
@@ -22,12 +24,15 @@ import com.sampleweatherapp.utilities.LocationManager
 
 class MainActivity : ComponentActivity() {
     private var onPermissionGranted: (() -> Unit)? = null
+    private lateinit var placeClient: PlacesClient
     private lateinit var locationManager: LocationManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        Places.initialize(this.applicationContext, BuildConfig.MAPS_API_KEY)
         locationManager = LocationManager(this)
         locationManager.startLocationTracking()
+        placeClient  = Places.createClient(this)
         setContent {
             SampleWeatherAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -37,7 +42,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     WeatherApp(
                         requestLocationPermission = ::requestLocationPermission,
-                        locationManager = locationManager
+                        locationManager = locationManager,
+                        placesClient = placeClient
                     )
                 }
             }
@@ -104,10 +110,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WeatherApp(
     locationManager: LocationManager,
-    requestLocationPermission: (onPermissionGranted: () -> Unit) -> Unit
+    requestLocationPermission: (onPermissionGranted: () -> Unit) -> Unit,
+    placesClient: PlacesClient
 ) {
     MainScreen(
         locationManager = locationManager,
-        onRequestPermission = requestLocationPermission
+        onRequestPermission = requestLocationPermission,
+        placesClient = placesClient
     )
 }
