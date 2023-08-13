@@ -17,6 +17,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.firebase.FirebaseApp
+import com.google.firebase.appdistribution.FirebaseAppDistribution
+import com.google.firebase.appdistribution.FirebaseAppDistributionException
+import com.google.firebase.appdistribution.UpdateProgress
 import com.sampleweatherapp.ui.MainScreen
 import com.sampleweatherapp.ui.theme.SampleWeatherAppTheme
 import com.sampleweatherapp.utilities.LocationManager
@@ -28,8 +32,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var locationManager: LocationManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         Places.initialize(this.applicationContext, BuildConfig.MAPS_API_KEY)
+        FirebaseApp.initializeApp(this)
         locationManager = LocationManager(this)
         locationManager.startLocationTracking()
         placeClient  = Places.createClient(this)
@@ -104,6 +110,23 @@ class MainActivity : ComponentActivity() {
 
     private fun setOnPermissionGrantedCallback(callback: () -> Unit) {
         onPermissionGranted = callback
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val firebaseAppDistribution = FirebaseAppDistribution.getInstance()
+        firebaseAppDistribution.updateIfNewReleaseAvailable()
+            .addOnProgressListener { }
+            .addOnFailureListener { e: Exception ->
+                // (Optional) Handle errors.
+                if (e is FirebaseAppDistributionException) {
+                    e.printStackTrace()
+                    when ((e as FirebaseAppDistributionException).errorCode) {
+                        FirebaseAppDistributionException.Status.NOT_IMPLEMENTED -> {}
+                        else -> {}
+                    }
+                }
+            }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.sampleweatherapp.ui
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -42,7 +43,7 @@ import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.City
-import com.sampleweatherapp.network.response.Response
+import com.sampleweatherapp.utilities.Response
 import com.sampleweatherapp.ui.components.ErrorScreen
 import com.sampleweatherapp.ui.components.LoadingAnimation
 import com.sampleweatherapp.ui.components.PlacePicker
@@ -64,6 +65,7 @@ fun FavouriteScreen(
         mutableStateOf(MapProperties(mapType = MapType.NORMAL))
     }
     val isPickingLocation = rememberSaveable { mutableStateOf(false) }
+    val newFav = rememberSaveable { mutableStateOf(false) }
     val pickedAddress = rememberSaveable() { mutableStateOf("") }
     val pickedLatLng = rememberSaveable { mutableStateOf(latLng) }
 
@@ -82,13 +84,22 @@ fun FavouriteScreen(
                     isPickingLocation.value = false
                     pickedAddress.value = address
                     pickedLatLng.value = coord
+                    newFav.value = true
                     getWeather(coord)
                 }
             })
     } else {
-        Body(background, favourites, properties, uiSettings, isPickingLocation)
+        Body(
+            background,
+            favourites,
+            properties,
+            uiSettings,
+            isPickingLocation,
+            weatherViewModel,
+            context
+        )
     }
-    if (pickedAddress.value.isNotEmpty()) {
+    if (newFav.value) {
         when (val forecastResponse = weatherViewModel.forecastWeatherState.value) {
             is Response.Loading -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -102,6 +113,7 @@ fun FavouriteScreen(
                     ErrorScreen(onClickRetry = { getWeather(pickedLatLng.value) })
                 } else {
                     weatherViewModel.addFavourites(context, forecastResponse.data.city)
+                    newFav.value = false
                 }
             }
 
@@ -121,7 +133,9 @@ fun Body(
     favourites: List<City>,
     properties: MutableState<MapProperties>,
     uiSettings: MutableState<MapUiSettings>,
-    isPickingLocation: MutableState<Boolean>
+    isPickingLocation: MutableState<Boolean>,
+    weatherViewModel: WeatherScreenViewModel,
+    context: Context
 ) {
     Box(
         modifier = Modifier
@@ -163,7 +177,11 @@ fun Body(
                     }
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(favourites) { item: City ->
-                            ListItem(city = item)
+                            ListItem(
+                                city = item,
+                                weatherViewModel = weatherViewModel,
+                                context = context
+                            )
                         }
                     }
                 }
@@ -194,8 +212,13 @@ fun Body(
 }
 
 @Composable
-fun ListItem(city: City, modifier: Modifier = Modifier) {
-    Log.e("FAVS",city.toString())
+fun ListItem(
+    city: City,
+    modifier: Modifier = Modifier,
+    weatherViewModel: WeatherScreenViewModel,
+    context: Context
+) {
+    Log.e("FAVS", city.toString())
     Box(modifier = Modifier.padding(vertical = 10.dp)) {
         Row(modifier.fillMaxWidth()) {
             Text(
@@ -211,10 +234,10 @@ fun ListItem(city: City, modifier: Modifier = Modifier) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
                 IconButton(
                     onClick = {
-                        //todo menu
+                        weatherViewModel.removeFavourite(context, city)
                     }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.baseline_more_vert_24),
+                        painter = painterResource(id = R.drawable.baseline_delete_outline_24),
                         contentDescription = "meu"
                     )
                 }

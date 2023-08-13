@@ -7,7 +7,7 @@ fun getDayOfWeek(timeStamp: Long): String {
     val dt = Instant.ofEpochSecond(timeStamp)
         .atZone(ZoneId.systemDefault())
         .toLocalDateTime()
-    val dayOfWeek : String = dt.dayOfWeek.name
+    val dayOfWeek : String = dt.dayOfWeek.name.lowercase()
     val capitalize = dayOfWeek.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(Locale.getDefault())
         else it.toString() }

@@ -40,7 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.CurrentWeather
 import com.sampleweatherapp.models.ForecastItem
-import com.sampleweatherapp.network.response.Response
+import com.sampleweatherapp.utilities.Response
 import com.sampleweatherapp.ui.components.ErrorScreen
 import com.sampleweatherapp.ui.components.LoadingAnimation
 import com.sampleweatherapp.ui.theme.cloudy
@@ -233,7 +233,7 @@ fun Header(currentWeather: CurrentWeather, containerHeight: Dp, image: Int) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(modifier = Modifier.wrapContentSize()) {
                 Text(
-                    text = currentWeather.main.temp.toString(),
+                    text = tempToInt(currentWeather.main.temp).toString(),
                     style = MaterialTheme.typography.headlineLarge
                 )
                 ReusableImage(

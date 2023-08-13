@@ -12,7 +12,7 @@ import com.sampleweatherapp.models.CurrentWeather
 import com.sampleweatherapp.models.Forecast
 import com.sampleweatherapp.network.WeatherRepository
 import com.sampleweatherapp.network.WeatherRepositoryImpl
-import com.sampleweatherapp.network.response.Response
+import com.sampleweatherapp.utilities.Response
 import com.sampleweatherapp.utilities.PrefUtils
 import kotlinx.coroutines.launch
 import java.lang.reflect.Type
