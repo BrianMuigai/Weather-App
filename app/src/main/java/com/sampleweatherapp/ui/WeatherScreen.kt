@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
@@ -36,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.CurrentWeather
@@ -236,11 +238,10 @@ fun Header(currentWeather: CurrentWeather, containerHeight: Dp, image: Int) {
                     text = tempToInt(currentWeather.main.temp).toString(),
                     style = MaterialTheme.typography.headlineLarge
                 )
-                ReusableImage(
-                    image = R.drawable.ic_degree,
-                    contentScale = ContentScale.Fit,
-                    contentDesc = "Degree Icon",
-                    modifier = Modifier
+                Text(
+                    text = "°",
+                    style = MaterialTheme.typography.headlineLarge.copy(fontSize = 42.sp),
+                    modifier = Modifier.offset(y = (-10).dp)
                 )
             }
             Text(

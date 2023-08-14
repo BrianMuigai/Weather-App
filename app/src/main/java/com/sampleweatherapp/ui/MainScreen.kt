@@ -1,5 +1,6 @@
 package com.sampleweatherapp.ui
 
+import android.location.Geocoder
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,7 +33,12 @@ import com.sampleweatherapp.utilities.LocationManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(locationManager: LocationManager, onRequestPermission: (() -> Unit) -> Unit, placesClient: PlacesClient) {
+fun MainScreen(
+    locationManager: LocationManager,
+    onRequestPermission: (() -> Unit) -> Unit,
+    placesClient: PlacesClient,
+    geocoder: Geocoder
+) {
     val navController = rememberNavController()
 
     Scaffold(
@@ -43,7 +49,8 @@ fun MainScreen(locationManager: LocationManager, onRequestPermission: (() -> Uni
             navController = navController,
             locationManager = locationManager,
             onRequestPermission = onRequestPermission,
-            placesClient = placesClient
+            placesClient = placesClient,
+            geocoder = geocoder
         )
     }
 }

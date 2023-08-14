@@ -3,6 +3,7 @@ package com.sampleweatherapp
 import android.Manifest.permission
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -20,7 +21,6 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appdistribution.FirebaseAppDistribution
 import com.google.firebase.appdistribution.FirebaseAppDistributionException
-import com.google.firebase.appdistribution.UpdateProgress
 import com.sampleweatherapp.ui.MainScreen
 import com.sampleweatherapp.ui.theme.SampleWeatherAppTheme
 import com.sampleweatherapp.utilities.LocationManager
@@ -29,6 +29,7 @@ import com.sampleweatherapp.utilities.LocationManager
 class MainActivity : ComponentActivity() {
     private var onPermissionGranted: (() -> Unit)? = null
     private lateinit var placeClient: PlacesClient
+    private lateinit var geocoder: Geocoder
     private lateinit var locationManager: LocationManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +39,8 @@ class MainActivity : ComponentActivity() {
         FirebaseApp.initializeApp(this)
         locationManager = LocationManager(this)
         locationManager.startLocationTracking()
-        placeClient  = Places.createClient(this)
+        placeClient = Places.createClient(this)
+        geocoder = Geocoder(this)
         setContent {
             SampleWeatherAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -49,7 +51,8 @@ class MainActivity : ComponentActivity() {
                     WeatherApp(
                         requestLocationPermission = ::requestLocationPermission,
                         locationManager = locationManager,
-                        placesClient = placeClient
+                        placesClient = placeClient,
+                        geocoder = geocoder
                     )
                 }
             }
@@ -121,7 +124,7 @@ class MainActivity : ComponentActivity() {
                 // (Optional) Handle errors.
                 if (e is FirebaseAppDistributionException) {
                     e.printStackTrace()
-                    when ((e as FirebaseAppDistributionException).errorCode) {
+                    when (e.errorCode) {
                         FirebaseAppDistributionException.Status.NOT_IMPLEMENTED -> {}
                         else -> {}
                     }
@@ -134,11 +137,12 @@ class MainActivity : ComponentActivity() {
 fun WeatherApp(
     locationManager: LocationManager,
     requestLocationPermission: (onPermissionGranted: () -> Unit) -> Unit,
-    placesClient: PlacesClient
+    placesClient: PlacesClient, geocoder: Geocoder
 ) {
     MainScreen(
         locationManager = locationManager,
         onRequestPermission = requestLocationPermission,
-        placesClient = placesClient
+        placesClient = placesClient,
+        geocoder = geocoder
     )
 }

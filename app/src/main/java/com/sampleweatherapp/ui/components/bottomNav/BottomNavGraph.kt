@@ -1,5 +1,6 @@
 package com.sampleweatherapp.ui.components.bottomNav
 
+import android.location.Geocoder
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,7 +23,7 @@ var backgroundColor: Color = cloudy
 fun BottomNavGraph(
     navController: NavHostController,
     locationManager: LocationManager, onRequestPermission: (() -> Unit) -> Unit,
-    placesClient: PlacesClient
+    placesClient: PlacesClient, geocoder: Geocoder
 ) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
@@ -42,7 +43,13 @@ fun BottomNavGraph(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                FavouriteScreen(background = backgroundColor, placesClient = placesClient)
+                FavouriteScreen(
+                    background = backgroundColor,
+                    placesClient = placesClient,
+                    geocoder = geocoder,
+                    locationManager = locationManager,
+                    onRequestPermission = onRequestPermission
+                )
             }
         }
     }

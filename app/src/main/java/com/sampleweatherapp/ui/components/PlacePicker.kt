@@ -1,5 +1,6 @@
 package com.sampleweatherapp.ui.components
 
+import android.location.Geocoder
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -48,6 +50,7 @@ fun PlacePicker(
     latLng: LatLng,
     locationModel: LocationViewModel = viewModel(),
     placesClient: PlacesClient,
+    geocoder: Geocoder,
     onPlacePicked: (address: String, latLng: LatLng) -> Unit
 ) {
     val cameraPositionState = rememberCameraPositionState {
@@ -59,9 +62,16 @@ fun PlacePicker(
     val text = remember { mutableStateOf("") }
     locationModel.setPlacesClient(placesClient)
     locationModel.setLatLng(latLng)
+    locationModel.geoCoder =  geocoder
 
     LaunchedEffect(locationModel.currentLatLong) {
         cameraPositionState.animate(CameraUpdateFactory.newLatLng(locationModel.currentLatLong))
+    }
+
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (!cameraPositionState.isMoving) {
+            locationModel.getAddress(cameraPositionState.position.target)
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -110,7 +120,6 @@ fun PlacePicker(
                                         locationModel.locationAutofill.clear()
                                         locationModel.getCoordinates(item) {
                                             scope.launch {
-                                                delay(5000)
                                                 onPlacePicked(
                                                     text.value,
                                                     locationModel.currentLatLong
