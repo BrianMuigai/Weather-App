@@ -153,8 +153,6 @@ fun Body(
     weatherViewModel: WeatherScreenViewModel,
     latLng: LatLng,
 ) {
-
-    val scope = rememberCoroutineScope()
     val uiSettings = remember { mutableStateOf(MapUiSettings()) }
 
     Box(
@@ -179,8 +177,8 @@ fun Body(
                 }
 
             )
-            weatherViewModel.favouriteState.value.let {
-                if (it.isEmpty()) {
+            weatherViewModel.favouriteState.let {
+                if (it.value.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize(),
@@ -207,7 +205,7 @@ fun Body(
                             MapScreen(
                                 latLng = latLng,
                                 uiSettings = uiSettings,
-                                favourites = it
+                                favourites = it.value
                             )
                             Switch(
                                 modifier = Modifier.padding(start = 16.dp),
@@ -224,12 +222,11 @@ fun Body(
                                 .fillMaxSize()
                                 .padding(all = 16.dp)
                         ) {
-                            items(it) { item: City ->
+                            items(it.value) { item: City ->
                                 ListItem(
                                     city = item,
                                     weatherViewModel = weatherViewModel,
                                     context = context,
-                                    scope = scope,
                                 )
                             }
                         }
@@ -246,7 +243,6 @@ fun ListItem(
     modifier: Modifier = Modifier,
     weatherViewModel: WeatherScreenViewModel,
     context: Context,
-    scope: CoroutineScope,
 ) {
     Row(
         modifier
@@ -266,19 +262,6 @@ fun ListItem(
                 .align(Alignment.CenterVertically)
                 .weight(1f), textAlign = TextAlign.End
         )
-        Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.padding(start = 10.dp)) {
-            IconButton(
-                onClick = {
-                    scope.launch {
-                        weatherViewModel.removeFavourite(context, city)
-                    }
-                }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_delete_outline_24),
-                    contentDescription = "menu"
-                )
-            }
-        }
     }
 }
 

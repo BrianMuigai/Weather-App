@@ -17,6 +17,7 @@ import com.sampleweatherapp.network.WeatherRepositoryImpl
 import com.sampleweatherapp.utilities.Response
 import com.sampleweatherapp.utilities.PrefUtils
 import kotlinx.coroutines.launch
+import okhttp3.internal.notify
 import java.lang.reflect.Type
 
 
@@ -32,7 +33,7 @@ class WeatherScreenViewModel : ViewModel() {
 
     val currentWeatherState: State<Response<CurrentWeather>> = _currentWeatherState
     val forecastWeatherState: State<Response<Forecast>> = _forecastWeatherState
-    val favouriteState: State<List<City>> = favourites
+    val favouriteState: State<MutableList<City>> = favourites
 
     fun setContext(context: Context) {
         weatherRepository = WeatherRepositoryImpl( context )
@@ -68,7 +69,7 @@ class WeatherScreenViewModel : ViewModel() {
     }
 
     fun getFavourites(context: Context): List<City> {
-        if (favourites.value.isNotEmpty()) return favourites.value
+        if (favourites.value.isNotEmpty()) favourites.value.clear()
         val favListStr = PrefUtils.with(context).getString(PrefUtils.FAV, "")
         val listOfMyClassObject: Type = object : TypeToken<ArrayList<City?>?>() {}.type
         if (favListStr!!.isNotEmpty()) {
@@ -88,12 +89,10 @@ class WeatherScreenViewModel : ViewModel() {
     }
 
     fun removeFavourite(context: Context, city: City) {
-        val id: Int = favourites.value.indexOfFirst { target: City -> target.name == city.name }
+        val id: Int = favouriteState.value.indexOfFirst { target: City -> target.name == city.name }
         if (id != -1) {
-            viewModelScope.launch {
-                favourites.value.removeAt(id)
-                saveFav(context, favourites.value)
-            }
+            favouriteState.value.removeAt(id)
+            saveFav(context, favouriteState.value)
         }
     }
 
