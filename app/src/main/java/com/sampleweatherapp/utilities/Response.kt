@@ -1,4 +1,4 @@
-package com.sampleweatherapp.network.response
+package com.sampleweatherapp.utilities
 
 sealed class Response<out T> {
     object Loading: Response<Nothing>()

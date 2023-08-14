@@ -1,8 +1,10 @@
 package com.sampleweatherapp.network.services
 
+import android.content.Context
 import com.sampleweatherapp.BuildConfig
 import com.sampleweatherapp.models.CurrentWeather
 import com.sampleweatherapp.models.Forecast
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -27,10 +29,14 @@ interface WeatherServices {
 
     companion object {
         private var retrofitService: WeatherServices? = null
-        fun getInstance() : WeatherServices {
+        var cacheSize = 10 * 1024 * 1024 // 10 MB
+
+        fun getInstance(context: Context) : WeatherServices {
             if (retrofitService == null) {
+                val cache = Cache(context.cacheDir, cacheSize.toLong())
                 val client = OkHttpClient
                     .Builder()
+                    .cache(cache)
                     .addInterceptor(
                         HttpLoggingInterceptor()
                             .setLevel(HttpLoggingInterceptor.Level.BODY)

@@ -2,7 +2,7 @@ package com.sampleweatherapp.network
 
 import com.sampleweatherapp.models.CurrentWeather
 import com.sampleweatherapp.models.Forecast
-import com.sampleweatherapp.network.response.Response
+import com.sampleweatherapp.utilities.Response
 import kotlinx.coroutines.flow.Flow
 
 interface WeatherRepository {
