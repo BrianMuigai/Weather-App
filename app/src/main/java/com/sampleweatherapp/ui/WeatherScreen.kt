@@ -39,7 +39,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.maps.model.LatLng
 import com.sampleweatherapp.R
+import com.sampleweatherapp.models.City
 import com.sampleweatherapp.models.CurrentWeather
 import com.sampleweatherapp.models.ForecastItem
 import com.sampleweatherapp.utilities.Response
@@ -63,15 +65,25 @@ fun WeatherScreen(
     locationManager: LocationManager,
     weatherViewModel: WeatherScreenViewModel = viewModel(),
     onRequestPermission: (onPermissionGranted: () -> Unit) -> Unit,
-    setBackground: (color: Color) -> Unit
+    setBackground: (color: Color) -> Unit,
+    city: City? = null
 ) {
     val context = LocalContext.current
+    weatherViewModel.setContext(context)
 
+    if (city != null) {
+        weatherViewModel.setLatLng(city.coordinates.lat, city.coordinates.lon)
+    }
     fun launch() {
-        if (hasLocationPermission(context)) {
+        if (city != null) {
+            weatherViewModel.getCurrentWeather(city.coordinates.lat, city.coordinates.lon)
+        } else if (hasLocationPermission(context)) {
             if (isLocationEnabled(context)) {
                 locationManager.getLastLocation(onSuccess = { lat: Double, lon: Double ->
-                    weatherViewModel.getCurrentWeather(lat, lon)
+                    run {
+                        weatherViewModel.setLatLng(lat, lon)
+                        weatherViewModel.getCurrentWeather(lat, lon)
+                    }
                 })
             } else {
                 Toast.makeText(
@@ -114,8 +126,8 @@ fun WeatherScreen(
                     setBackground.invoke(
                         when (currentWeatherResponse.data.weather[0].main) {
                             WeatherCondition.Sun.name -> sunny
-                            WeatherCondition.Clouds.name -> cloudy
-                            else -> rainy
+                            WeatherCondition.Rain.name -> rainy
+                            else -> cloudy
                         }
                     )
                 }
@@ -136,7 +148,7 @@ fun WeatherScreen(
 @Composable
 fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewModel) {
     fun launch() {
-        weatherViewModel.getForecastWeather(1.2921, 36.8219)
+        weatherViewModel.getForecastWeather()
     }
     launch()
 
@@ -152,8 +164,8 @@ fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewMo
                         containerHeight = this@BoxWithConstraints.maxHeight,
                         image = when (currentWeather.weather.first().main) {
                             WeatherCondition.Sun.name -> R.drawable.forest_sunny
-                            WeatherCondition.Clouds.name -> R.drawable.forest_cloudy
-                            else -> R.drawable.forest_rainy
+                            WeatherCondition.Rain.name -> R.drawable.forest_rainy
+                            else -> R.drawable.forest_cloudy
                         }
                     )
                     Box(
@@ -161,8 +173,8 @@ fun Screen(currentWeather: CurrentWeather, weatherViewModel: WeatherScreenViewMo
                             .background(
                                 color = when (currentWeather.weather[0].main) {
                                     WeatherCondition.Sun.name -> sunny
-                                    WeatherCondition.Clouds.name -> cloudy
-                                    else -> rainy
+                                    WeatherCondition.Rain.name -> rainy
+                                    else -> cloudy
                                 }
                             )
                             .heightIn(this@BoxWithConstraints.maxHeight)

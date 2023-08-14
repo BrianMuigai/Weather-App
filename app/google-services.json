@@ -33,6 +33,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:961926818771:android:9094892700b0eb8f135d26",
+        "android_client_info": {
+          "package_name": "com.sampleweatherapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "961926818771-kh1iane1ntvd08evligomjubhai9gp4m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrrQTOPMyMSBV5wxHFh7qnvhdXJWydluw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "961926818771-kh1iane1ntvd08evligomjubhai9gp4m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

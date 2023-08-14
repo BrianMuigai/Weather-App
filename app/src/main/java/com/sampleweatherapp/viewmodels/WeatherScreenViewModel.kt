@@ -6,6 +6,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sampleweatherapp.models.City
@@ -19,18 +20,26 @@ import kotlinx.coroutines.launch
 import java.lang.reflect.Type
 
 
-class WeatherScreenViewModel constructor(private val weatherRepository: WeatherRepository = WeatherRepositoryImpl()) :
-    ViewModel() {
+class WeatherScreenViewModel : ViewModel() {
 
     private val _currentWeatherState =
         mutableStateOf<Response<CurrentWeather>>(Response.Success(null))
     private val _forecastWeatherState = mutableStateOf<Response<Forecast>>(Response.Success(null))
     private val gson = Gson()
     private val favourites = mutableStateOf<MutableList<City>>(mutableListOf())
+    private lateinit var latLng: LatLng
+    private lateinit var weatherRepository: WeatherRepository
 
     val currentWeatherState: State<Response<CurrentWeather>> = _currentWeatherState
     val forecastWeatherState: State<Response<Forecast>> = _forecastWeatherState
     val favouriteState: State<List<City>> = favourites
+
+    fun setContext(context: Context) {
+        weatherRepository = WeatherRepositoryImpl( context )
+    }
+    fun setLatLng(lat: Double, lon: Double) {
+        latLng = LatLng(lat, lon)
+    }
 
     fun setFailCurrentWeatherResponse(message: String) {
         _currentWeatherState.value =
@@ -45,9 +54,9 @@ class WeatherScreenViewModel constructor(private val weatherRepository: WeatherR
         }
     }
 
-    fun getForecastWeather(lat: Double, lon: Double) {
+    fun getForecastWeather() {
         viewModelScope.launch {
-            weatherRepository.getForecast(lat, lon).collect { response ->
+            weatherRepository.getForecast(latLng.latitude, latLng.longitude).collect { response ->
                 _forecastWeatherState.value = response
             }
         }

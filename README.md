@@ -17,6 +17,7 @@ For the different build types to be generated, the following files are required:
 - secrets.properties:- Contains all the secret credentials for the project. It should be placed in the root directory
 - sampleWeatherApp.keystore:- Contains the keystore credentials for the release and beta builds. Should be placed in the root directory
 - sampleWeatherAppDebug.keystore:- Contains all the keystore credentials for debug build type. Should be placed in the root directory
+- google-services-json: Firebase configuration file
 
 ### Third party libraries
 - Network

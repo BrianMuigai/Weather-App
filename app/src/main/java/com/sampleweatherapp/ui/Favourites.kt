@@ -3,10 +3,11 @@ package com.sampleweatherapp.ui
 import android.content.Context
 import android.content.Intent
 import android.location.Geocoder
+import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,18 +49,21 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.sampleweatherapp.FavouriteWeatherActivity
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.City
 import com.sampleweatherapp.models.Coordinates
 import com.sampleweatherapp.ui.components.LoadingAnimation
 import com.sampleweatherapp.ui.components.PlacePicker
 import com.sampleweatherapp.ui.theme.cloudy
+import com.sampleweatherapp.utilities.ARG_CITY
 import com.sampleweatherapp.utilities.LocationManager
 import com.sampleweatherapp.utilities.hasLocationPermission
 import com.sampleweatherapp.utilities.isLocationEnabled
 import com.sampleweatherapp.viewmodels.WeatherScreenViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun FavouriteScreen(
@@ -71,7 +75,8 @@ fun FavouriteScreen(
     geocoder: Geocoder
 ) {
     val context = LocalContext.current
-    val isPickingLocation = rememberSaveable { mutableStateOf(false) }
+    val currentScreen =
+        rememberSaveable { mutableStateOf(com.sampleweatherapp.utilities.Screen.FAVOURITES.name) }
     val newFav = rememberSaveable { mutableStateOf(false) }
     val gotCurrentLocation = rememberSaveable { mutableStateOf(false) }
     val pickedAddress = rememberSaveable { mutableStateOf("") }
@@ -101,14 +106,13 @@ fun FavouriteScreen(
 
     launch()
 
-    if (isPickingLocation.value) {
+    if (currentScreen.value == com.sampleweatherapp.utilities.Screen.PICK_LOCATION.name) {
         PlacePicker(
             latLng = pickedLatLng.value,
             placesClient = placesClient,
             geocoder = geocoder,
             onPlacePicked = { address: String, coord: LatLng ->
                 run {
-                    isPickingLocation.value = false
                     pickedAddress.value = address
                     pickedLatLng.value = coord
                     newFav.value = true
@@ -122,16 +126,17 @@ fun FavouriteScreen(
                             country
                         )
                     weatherViewModel.addFavourites(context, city)
+                    currentScreen.value = com.sampleweatherapp.utilities.Screen.FAVOURITES.name
                 }
             })
     } else {
         if (gotCurrentLocation.value) {
             Body(
                 background = background,
-                isPickingLocation = isPickingLocation,
+                currentScreen = currentScreen,
                 weatherViewModel = weatherViewModel,
                 latLng = pickedLatLng.value,
-                context = context
+                context = context,
             )
         } else {
             LoadingAnimation()
@@ -144,7 +149,7 @@ fun FavouriteScreen(
 fun Body(
     context: Context,
     background: Color,
-    isPickingLocation: MutableState<Boolean>,
+    currentScreen: MutableState<String>,
     weatherViewModel: WeatherScreenViewModel,
     latLng: LatLng,
 ) {
@@ -163,7 +168,8 @@ fun Body(
                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Transparent),
                 actions = {
                     IconButton(onClick = {
-                        isPickingLocation.value = true
+                        currentScreen.value =
+                            com.sampleweatherapp.utilities.Screen.PICK_LOCATION.name
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_add_24),
@@ -218,13 +224,12 @@ fun Body(
                                 .fillMaxSize()
                                 .padding(all = 16.dp)
                         ) {
-                            Log.e("FAVS", it.toString())
                             items(it) { item: City ->
                                 ListItem(
                                     city = item,
                                     weatherViewModel = weatherViewModel,
                                     context = context,
-                                    scope = scope
+                                    scope = scope,
                                 )
                             }
                         }
@@ -241,9 +246,14 @@ fun ListItem(
     modifier: Modifier = Modifier,
     weatherViewModel: WeatherScreenViewModel,
     context: Context,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ) {
-    Row(modifier.fillMaxWidth()) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clickable {
+                FavouriteWeatherActivity.start(context, city)
+            }) {
         Text(
             text = city.name, modifier = Modifier
                 .fillMaxWidth()
