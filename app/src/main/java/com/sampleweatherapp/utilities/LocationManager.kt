@@ -5,6 +5,7 @@ import android.content.Context
 import android.location.Location
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationAvailability
@@ -17,20 +18,18 @@ import com.sampleweatherapp.R
 
 @SuppressLint("MissingPermission")
 class LocationManager(
-    context: Context,
+    private var context: Context,
     private var timeInterval: Long = 500,
-    private var minimalDistance: Float = 20f
+    private var minimalDistance: Float = 100f
 ) : LocationCallback() {
 
     private var request: LocationRequest
-    private var locationClient: FusedLocationProviderClient
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var locationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
 
     init {
         // getting the location client
-        locationClient = LocationServices.getFusedLocationProviderClient(context)
         request = createRequest()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     }
 
     private fun createRequest(): LocationRequest =
@@ -67,12 +66,17 @@ class LocationManager(
     }
 
     fun getLastLocation(onSuccess: (lat: Double, lon: Double) -> Unit) {
-        fusedLocationClient.lastLocation
+        locationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     onSuccess(location.latitude, location.longitude)
                 } else {
-                    Log.e("WeatherScreen", "Null location")
+                    Log.e("LocationManager", "Null location")
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.unable_to_get_location),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
             .addOnFailureListener { e: Exception -> e.printStackTrace() }

@@ -14,4 +14,5 @@
     <string name="home">Home</string>
     <string name="favourites">Favourites</string>
     <string name="pickLocation">Pick Location</string>
+    <string name="unable_to_get_location">Unable to get your location. Please try again later</string>
 </resources>

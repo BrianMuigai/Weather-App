@@ -3,6 +3,7 @@ package com.sampleweatherapp.ui.components
 import android.location.Geocoder
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.sampleweatherapp.ui.theme.black
+import com.sampleweatherapp.ui.theme.white
 import com.sampleweatherapp.viewmodels.AutocompleteResult
 import com.sampleweatherapp.viewmodels.LocationViewModel
 import kotlinx.coroutines.delay
@@ -51,7 +53,7 @@ fun PlacePicker(
     locationModel: LocationViewModel = viewModel(),
     placesClient: PlacesClient,
     geocoder: Geocoder,
-    onPlacePicked: (address: String, latLng: LatLng) -> Unit
+    onPlacePicked: (address: String, latLng: LatLng) -> Unit,
 ) {
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(latLng, 15f)
@@ -62,7 +64,8 @@ fun PlacePicker(
     val text = remember { mutableStateOf("") }
     locationModel.setPlacesClient(placesClient)
     locationModel.setLatLng(latLng)
-    locationModel.geoCoder =  geocoder
+    locationModel.geoCoder = geocoder
+    val isDarkTheme = isSystemInDarkTheme()
 
     LaunchedEffect(locationModel.currentLatLong) {
         cameraPositionState.animate(CameraUpdateFactory.newLatLng(locationModel.currentLatLong))
@@ -92,7 +95,6 @@ fun PlacePicker(
                 .align(Alignment.BottomCenter)
                 .padding(8.dp)
                 .fillMaxWidth(),
-            color = Color.White,
             shape = RoundedCornerShape(8.dp)
         ) {
             Column(
@@ -129,7 +131,7 @@ fun PlacePicker(
 
                                     }
                             ) {
-                                Text(item.address, color = black)
+                                Text(item.address, color = if (isDarkTheme) white else black)
                             }
                         }
                     }

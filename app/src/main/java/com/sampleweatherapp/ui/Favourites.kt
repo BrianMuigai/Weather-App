@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,17 +40,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
 import com.sampleweatherapp.R
 import com.sampleweatherapp.models.City
 import com.sampleweatherapp.models.Coordinates
@@ -60,6 +58,8 @@ import com.sampleweatherapp.utilities.LocationManager
 import com.sampleweatherapp.utilities.hasLocationPermission
 import com.sampleweatherapp.utilities.isLocationEnabled
 import com.sampleweatherapp.viewmodels.WeatherScreenViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun FavouriteScreen(
@@ -71,10 +71,6 @@ fun FavouriteScreen(
     geocoder: Geocoder
 ) {
     val context = LocalContext.current
-    val uiSettings = remember { mutableStateOf(MapUiSettings()) }
-    val properties = remember {
-        mutableStateOf(MapProperties(mapType = MapType.NORMAL))
-    }
     val isPickingLocation = rememberSaveable { mutableStateOf(false) }
     val newFav = rememberSaveable { mutableStateOf(false) }
     val gotCurrentLocation = rememberSaveable { mutableStateOf(false) }
@@ -119,20 +115,23 @@ fun FavouriteScreen(
                     val location = address.split(",").first()
                     val country = address.split(", ").last()
                     val city =
-                        City(0, location, Coordinates(coord.latitude, coord.longitude), country)
+                        City(
+                            0,
+                            location,
+                            Coordinates(lat = coord.latitude, lon = coord.longitude),
+                            country
+                        )
                     weatherViewModel.addFavourites(context, city)
                 }
             })
     } else {
         if (gotCurrentLocation.value) {
             Body(
-                background,
-                properties,
-                uiSettings,
-                isPickingLocation,
-                weatherViewModel,
-                pickedLatLng.value,
-                context
+                background = background,
+                isPickingLocation = isPickingLocation,
+                weatherViewModel = weatherViewModel,
+                latLng = pickedLatLng.value,
+                context = context
             )
         } else {
             LoadingAnimation()
@@ -143,14 +142,16 @@ fun FavouriteScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Body(
+    context: Context,
     background: Color,
-    properties: MutableState<MapProperties>,
-    uiSettings: MutableState<MapUiSettings>,
     isPickingLocation: MutableState<Boolean>,
     weatherViewModel: WeatherScreenViewModel,
     latLng: LatLng,
-    context: Context
 ) {
+
+    val scope = rememberCoroutineScope()
+    val uiSettings = remember { mutableStateOf(MapUiSettings()) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -199,7 +200,6 @@ fun Body(
                         Box(Modifier.fillMaxWidth()) {
                             MapScreen(
                                 latLng = latLng,
-                                properties = properties,
                                 uiSettings = uiSettings,
                                 favourites = it
                             )
@@ -223,7 +223,8 @@ fun Body(
                                 ListItem(
                                     city = item,
                                     weatherViewModel = weatherViewModel,
-                                    context = context
+                                    context = context,
+                                    scope = scope
                                 )
                             }
                         }
@@ -239,7 +240,8 @@ fun ListItem(
     city: City,
     modifier: Modifier = Modifier,
     weatherViewModel: WeatherScreenViewModel,
-    context: Context
+    context: Context,
+    scope: CoroutineScope
 ) {
     Row(modifier.fillMaxWidth()) {
         Text(
@@ -257,7 +259,9 @@ fun ListItem(
         Box(contentAlignment = Alignment.BottomEnd, modifier = Modifier.padding(start = 10.dp)) {
             IconButton(
                 onClick = {
-                    weatherViewModel.removeFavourite(context, city)
+                    scope.launch {
+                        weatherViewModel.removeFavourite(context, city)
+                    }
                 }) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_delete_outline_24),
@@ -271,30 +275,28 @@ fun ListItem(
 @Composable
 fun MapScreen(
     latLng: LatLng,
-    properties: MutableState<MapProperties>,
     uiSettings: MutableState<MapUiSettings>,
     favourites: List<City>
 ) {
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(latLng, 10f)
     }
+
     GoogleMap(
         cameraPositionState = cameraPositionState,
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp),
-        properties = properties.value,
         uiSettings = uiSettings.value,
     ) {
         favourites.forEach { city: City ->
             Marker(
-                state = rememberMarkerState(
-                    key = city.name, position = LatLng(
+                state = MarkerState(
+                    position = LatLng(
                         city.coordinates.lat, city.coordinates.lon
                     )
                 ),
                 title = city.name,
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
             )
         }
     }

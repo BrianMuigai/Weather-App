@@ -54,10 +54,8 @@ class WeatherScreenViewModel constructor(private val weatherRepository: WeatherR
     }
 
     fun saveFav(context: Context, favourites: List<City>) {
-        viewModelScope.launch {
-            val gsonString = gson.toJson(favourites)
-            PrefUtils.with(context).save(PrefUtils.FAV, gsonString)
-        }
+        val gsonString = gson.toJson(favourites)
+        PrefUtils.with(context).save(PrefUtils.FAV, gsonString)
     }
 
     fun getFavourites(context: Context): List<City> {
@@ -72,20 +70,18 @@ class WeatherScreenViewModel constructor(private val weatherRepository: WeatherR
     }
 
     fun addFavourites(context: Context, city: City) {
-        viewModelScope.launch {
-            if (favourites.value.isEmpty()) getFavourites(context)
-            val index = favourites.value.indexOfFirst { ob: City -> ob.name == city.name }
-            if (index == -1) {
-                favourites.value.add(city)
-                saveFav(context, favourites.value)
-            }
+        if (favourites.value.isEmpty()) getFavourites(context)
+        val index = favourites.value.indexOfFirst { ob: City -> ob.name == city.name }
+        if (index == -1) {
+            favourites.value.add(city)
+            saveFav(context, favourites.value)
         }
     }
 
     fun removeFavourite(context: Context, city: City) {
-        viewModelScope.launch {
-            val id: Int = favourites.value.indexOfFirst { target: City -> target.name == city.name }
-            if (id != -1) {
+        val id: Int = favourites.value.indexOfFirst { target: City -> target.name == city.name }
+        if (id != -1) {
+            viewModelScope.launch {
                 favourites.value.removeAt(id)
                 saveFav(context, favourites.value)
             }
